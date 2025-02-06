@@ -1,0 +1,95 @@
+# rdi = src, rsi = dst, rdx = len
+ncopy:
+    iaddq $-8, %rdx
+	jl RestElm
+
+Loop:
+	mrmovq (%rdi), %r8
+	mrmovq 8(%rdi), %r9
+	andq %r8, %r8
+	rmmovq %r8, (%rsi)
+	rmmovq %r9, 8(%rsi)
+	jle Loop1
+	iaddq $1, %rax
+Loop1:
+	andq %r9, %r9
+	jle Loop2
+	iaddq $1, %rax
+Loop2:
+	mrmovq 16(%rdi), %r8
+	mrmovq 24(%rdi), %r9
+	andq %r8, %r8
+	rmmovq %r8, 16(%rsi)
+	rmmovq %r9, 24(%rsi)
+	jle Loop3
+	iaddq $1, %rax
+Loop3:
+	andq %r9, %r9
+	jle Loop4
+	iaddq $1, %rax
+Loop4:
+	mrmovq 32(%rdi), %r8
+	mrmovq 40(%rdi), %r9
+	andq %r8, %r8
+	rmmovq %r8, 32(%rsi)
+	rmmovq %r9, 40(%rsi)
+	jle Loop5
+	iaddq $1, %rax
+Loop5:
+	andq %r9, %r9
+	jle Loop6
+	iaddq $1, %rax
+Loop6:
+	mrmovq 48(%rdi), %r8
+	mrmovq 56(%rdi), %r9
+	andq %r8, %r8
+	rmmovq %r8, 48(%rsi)
+	rmmovq %r9, 56(%rsi)
+	jle Loop7
+	iaddq $1, %rax
+Loop7:
+	andq %r9, %r9
+	jle Nops
+	iaddq $1, %rax
+
+Nops:
+	iaddq $64, %rdi
+	iaddq $64, %rsi
+	iaddq $-8, %rdx
+	jge Loop
+
+RestElm:
+    iaddq $7, %rdx
+	jl Done
+	je Rest1
+Rest2:
+	mrmovq (%rdi), %r8
+	mrmovq 8(%rdi), %r9
+	andq %r8, %r8
+	rmmovq %r8, (%rsi)
+	rmmovq %r9, 8(%rsi)
+	jle N2
+	iaddq $1, %rax
+N2:
+	andq %r9, %r9
+	jl test
+	iaddq $1, %rax
+
+test:
+	iaddq $16, %rdi
+	iaddq $16,%rsi
+	iaddq $-2, %rdx
+	jl Done
+	je Rest1
+	jmp Rest2
+
+
+Rest1:
+	mrmovq (%rdi), %r8
+	andq %r8, %r8
+	rmmovq %r8, (%rsi)
+	jle Done
+	iaddq $1, %rax
+
+Done:
+	ret
