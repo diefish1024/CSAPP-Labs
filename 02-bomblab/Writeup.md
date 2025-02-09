@@ -22,13 +22,13 @@ But finding it and solving it are quite different...
 
 下面是 GDB 的基本功能和用法
 
-#### Strating GDB
+### Strating GDB
 
 ```bash
 gdb ./bomb
 ```
 
-#### 设置断点
+### 设置断点
 
 可以在某一行，某个地址或者某个函数设置断点
 
@@ -51,7 +51,7 @@ delete n # we can get n from the output of i b
 delete breadkpoints # delete all breakpoints
 ```
 
-#### 运行
+### 运行
 
 ```bash
 run
@@ -63,7 +63,7 @@ step (or s) # Step into functions
 next (or n) # Step over functions
 ```
 
-#### 输出
+### 输出
 
 输出变量
 ```bash
@@ -80,7 +80,7 @@ x/[number][format][unit] address address
 x/8x $rsp # Examine 8 words in hex starting at the stack pointer
 ```
 
-##### Format
+#### Format
 
 - x: Hexadecimal
 
@@ -102,7 +102,7 @@ x/8x $rsp # Examine 8 words in hex starting at the stack pointer
 
 - i: Instruction (disassembly)
 
-##### Unit
+#### Unit
 
 Specifies the size of each unit. Common units include:
 
@@ -114,24 +114,24 @@ Specifies the size of each unit. Common units include:
 
 - g: Giant word (8 bytes)
 
-#### 回退
+### 回退
 
 ```bash
 backtrace (or bt)
 ```
 
-#### 退出
+### 退出
 
 ```bash
 quit (or q)
 ```
-#### 反汇编
+### 反汇编
 
 ```bash
 disas
 ```
 
-#### 分割窗口
+### 分割窗口
 
 两个命令分别显示汇编代码和寄存器
 
@@ -148,7 +148,7 @@ wsl
 
 ## 拆弹
 
-#### 准备
+### 准备
 
 1) 通过 `gdb` 运行 `bomb` ，并查看 main 函数汇编代码
 
@@ -236,7 +236,7 @@ End of assembler dump.
 objdump -d bomb > bomb.asm
 ```
 
-#### phase_1
+### phase_1
 
 1) 查看 `phase_1` 函数的汇编代码
 
@@ -323,7 +323,7 @@ Phase 1 defused. How about the next one?
 
 6) 我们可以把答案存入 `ans.txt` 文件中，这些之后不用重复输入，运行可以直接 `r ans.txt`
 
-#### phase_2
+### phase_2
 
 1) 先查看汇编代码
 
@@ -420,5 +420,98 @@ which to blow yourself up. Have a nice day!
 Phase 1 defused. How about the next one?
 >> 1 2 4 8 16 32
 That's number 2.  Keep going!
+```
+
+### phase_3
+
+1) 查看汇编代码
+
+```bash
+(gdb) disas phase_3
+Dump of assembler code for function phase_3:
+   0x0000000000400f43 <+0>:     sub    $0x18,%rsp
+   0x0000000000400f47 <+4>:     lea    0xc(%rsp),%rcx
+   0x0000000000400f4c <+9>:     lea    0x8(%rsp),%rdx
+   0x0000000000400f51 <+14>:    mov    $0x4025cf,%esi
+   0x0000000000400f56 <+19>:    mov    $0x0,%eax
+   0x0000000000400f5b <+24>:    call   0x400bf0 <__isoc99_sscanf@plt>
+   0x0000000000400f60 <+29>:    cmp    $0x1,%eax
+   0x0000000000400f63 <+32>:    jg     0x400f6a <phase_3+39>
+   0x0000000000400f65 <+34>:    call   0x40143a <explode_bomb>
+   0x0000000000400f6a <+39>:    cmpl   $0x7,0x8(%rsp)
+   0x0000000000400f6f <+44>:    ja     0x400fad <phase_3+106>
+   0x0000000000400f71 <+46>:    mov    0x8(%rsp),%eax
+   0x0000000000400f75 <+50>:    jmp    *0x402470(,%rax,8)
+   0x0000000000400f7c <+57>:    mov    $0xcf,%eax
+   0x0000000000400f81 <+62>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400f83 <+64>:    mov    $0x2c3,%eax
+   0x0000000000400f88 <+69>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400f8a <+71>:    mov    $0x100,%eax
+   0x0000000000400f8f <+76>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400f91 <+78>:    mov    $0x185,%eax
+   0x0000000000400f96 <+83>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400f98 <+85>:    mov    $0xce,%eax
+   0x0000000000400f9d <+90>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400f9f <+92>:    mov    $0x2aa,%eax
+   0x0000000000400fa4 <+97>:    jmp    0x400fbe <phase_3+123>
+   0x0000000000400fa6 <+99>:    mov    $0x147,%eax
+   0x0000000000400fab <+104>:   jmp    0x400fbe <phase_3+123>
+   0x0000000000400fad <+106>:   call   0x40143a <explode_bomb>
+   0x0000000000400fb2 <+111>:   mov    $0x0,%eax
+   0x0000000000400fb7 <+116>:   jmp    0x400fbe <phase_3+123>
+   0x0000000000400fb9 <+118>:   mov    $0x137,%eax
+   0x0000000000400fbe <+123>:   cmp    0xc(%rsp),%eax
+   0x0000000000400fc2 <+127>:   je     0x400fc9 <phase_3+134>
+   0x0000000000400fc4 <+129>:   call   0x40143a <explode_bomb>
+   0x0000000000400fc9 <+134>:   add    $0x18,%rsp
+   0x0000000000400fcd <+138>:   ret
+End of assembler dump.
+```
+
+2) 分析汇编代码
+
+注意到地址 `0x4025cf`
+
+```bash
+(gdb) x/s 0x4025cf
+0x4025cf:       "%d %d"
+```
+
+所以需要输入两个整数
+
+分别会存入栈中的 `0x8(%rsp)` 和 `0xc(%rsp)` 中，可以直接输出来确认这一点
+
+于是 `cmpl   $0x7,0x8(%rsp)` 的作用是是检查第一个数是否大于 7 ，大于就会爆炸
+
+发现之后是一个根据第一个数跳转到不同地址的结构，类似跳转表的结构，可以直接猜测这段内容是一个 `switch` 语句
+
+注意语句 `jmp    *0x402470(,%rax,8)` 是一个间接跳转，以 `rax` 寄存器的值乘 8 作为偏移量，跳转到 `0x402470 + 8 * rax` 所储存的地址处，而不是跳转到这个地址
+
+我们可以通过 `x/7gx 0x402470` 查看这个跳转表
+
+```bash
+(gdb) x/7gx 0x402470
+0x402470:       0x0000000000400f7c      0x0000000000400fb9
+0x402480:       0x0000000000400f83      0x0000000000400f8a
+0x402490:       0x0000000000400f91      0x0000000000400f98
+0x4024a0:       0x0000000000400f9f
+```
+
+跳转后  `mov` 指令将对应的值存入 `eax` 寄存器，再与输入的第二个数比较，相等即可通过
+
+所以答案有很多组，随意输入一个即可
+
+或者直接一步一步用 gdb 跳转也可以轻松得到答案
+
+3) 设置断点并运行，随便取一组答案输入
+
+```
+(gdb) r ans.txt
+Welcome to my fiendish little bomb. You have 6 phases with
+which to blow yourself up. Have a nice day!
+Phase 1 defused. How about the next one?
+That's number 2.  Keep going!
+>> 0 207
+Halfway there!
 ```
 
