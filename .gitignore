@@ -1,4 +1,5 @@
 .vscode
 00-packages
 01-datalab/.vscode
+02-bomblab/bomblab/in.txt
 04-archlab/.vscode
