@@ -487,19 +487,32 @@ End of assembler dump.
 
 注意语句 `jmp    *0x402470(,%rax,8)` 是一个间接跳转，以 `rax` 寄存器的值乘 8 作为偏移量，跳转到 `0x402470 + 8 * rax` 所储存的地址处，而不是跳转到这个地址
 
-我们可以通过 `x/7gx 0x402470` 查看这个跳转表
+我们可以通过 `x/8a 0x402470` 查看这个跳转表
 
 ```bash
-(gdb) x/7gx 0x402470
-0x402470:       0x0000000000400f7c      0x0000000000400fb9
-0x402480:       0x0000000000400f83      0x0000000000400f8a
-0x402490:       0x0000000000400f91      0x0000000000400f98
-0x4024a0:       0x0000000000400f9f
+(gdb) x/8a 0x402470
+0x402470:       0x400f7c <phase_3+57>   0x400fb9 <phase_3+118>
+0x402480:       0x400f83 <phase_3+64>   0x400f8a <phase_3+71>
+0x402490:       0x400f91 <phase_3+78>   0x400f98 <phase_3+85>
+0x4024a0:       0x400f9f <phase_3+92>   0x400fa6 <phase_3+99>
 ```
 
 跳转后  `mov` 指令将对应的值存入 `eax` 寄存器，再与输入的第二个数比较，相等即可通过
 
-所以答案有很多组，随意输入一个即可
+而各个 case 对应的值是
+
+```
+case 0: 0xcf     (207)
+case 1: 0x137    (311)
+case 2: 0x2c3    (707)
+case 3: 0x100    (256)
+case 4: 0x185    (389)
+case 5: 0xce      (206)
+case 6: 0x2aa     (682)
+case 7: 0x147     (327)
+```
+
+所以答案有 8 组，随意输入一个即可
 
 或者直接一步一步用 gdb 跳转也可以轻松得到答案
 
@@ -515,3 +528,127 @@ That's number 2.  Keep going!
 Halfway there!
 ```
 
+记得把答案加入 `ans.txt`
+
+#### phase_4
+
+1) 查看汇编代码
+
+```bash
+(gdb) disas phase_4
+Dump of assembler code for function phase_4:
+   0x000000000040100c <+0>:     sub    $0x18,%rsp
+   0x0000000000401010 <+4>:     lea    0xc(%rsp),%rcx
+   0x0000000000401015 <+9>:     lea    0x8(%rsp),%rdx
+   0x000000000040101a <+14>:    mov    $0x4025cf,%esi
+   0x000000000040101f <+19>:    mov    $0x0,%eax
+   0x0000000000401024 <+24>:    call   0x400bf0 <__isoc99_sscanf@plt>
+   0x0000000000401029 <+29>:    cmp    $0x2,%eax
+   0x000000000040102c <+32>:    jne    0x401035 <phase_4+41>
+   0x000000000040102e <+34>:    cmpl   $0xe,0x8(%rsp)
+   0x0000000000401033 <+39>:    jbe    0x40103a <phase_4+46>
+   0x0000000000401035 <+41>:    call   0x40143a <explode_bomb>
+   0x000000000040103a <+46>:    mov    $0xe,%edx
+   0x000000000040103f <+51>:    mov    $0x0,%esi
+   0x0000000000401044 <+56>:    mov    0x8(%rsp),%edi
+   0x0000000000401048 <+60>:    call   0x400fce <func4>
+   0x000000000040104d <+65>:    test   %eax,%eax
+   0x000000000040104f <+67>:    jne    0x401058 <phase_4+76>
+   0x0000000000401051 <+69>:    cmpl   $0x0,0xc(%rsp)
+   0x0000000000401056 <+74>:    je     0x40105d <phase_4+81>
+   0x0000000000401058 <+76>:    call   0x40143a <explode_bomb>
+   0x000000000040105d <+81>:    add    $0x18,%rsp
+   0x0000000000401061 <+85>:    ret    
+End of assembler dump.
+```
+
+发现调用了 `func4` 函数，，再查看 `func4` 函数的汇编代码
+
+```bash
+(gdb) disas func4
+Dump of assembler code for function func4:
+   0x0000000000400fce <+0>:     sub    $0x8,%rsp
+   0x0000000000400fd2 <+4>:     mov    %edx,%eax
+   0x0000000000400fd4 <+6>:     sub    %esi,%eax
+   0x0000000000400fd6 <+8>:     mov    %eax,%ecx
+   0x0000000000400fd8 <+10>:    shr    $0x1f,%ecx
+   0x0000000000400fdb <+13>:    add    %ecx,%eax
+   0x0000000000400fdd <+15>:    sar    %eax
+   0x0000000000400fdf <+17>:    lea    (%rax,%rsi,1),%ecx
+   0x0000000000400fe2 <+20>:    cmp    %edi,%ecx
+   0x0000000000400fe4 <+22>:    jle    0x400ff2 <func4+36>
+   0x0000000000400fe6 <+24>:    lea    -0x1(%rcx),%edx
+   0x0000000000400fe9 <+27>:    call   0x400fce <func4>
+   0x0000000000400fee <+32>:    add    %eax,%eax
+   0x0000000000400ff0 <+34>:    jmp    0x401007 <func4+57>
+   0x0000000000400ff2 <+36>:    mov    $0x0,%eax
+   0x0000000000400ff7 <+41>:    cmp    %edi,%ecx
+   0x0000000000400ff9 <+43>:    jge    0x401007 <func4+57>
+   0x0000000000400ffb <+45>:    lea    0x1(%rcx),%esi
+   0x0000000000400ffe <+48>:    call   0x400fce <func4>
+   0x0000000000401003 <+53>:    lea    0x1(%rax,%rax,1),%eax        
+   0x0000000000401007 <+57>:    add    $0x8,%rsp
+   0x000000000040100b <+61>:    ret
+End of assembler dump.
+```
+
+2) 分析汇编代码
+
+先查看输入格式
+
+```bash
+(gdb) x/s 0x4025cf
+0x4025cf:       "%d %d"
+```
+
+也是需要输入两个整数，设为 `a` 和 `b`
+
+之后比较 `a` 是否小于等于 14，如果不是就爆炸
+
+之后调用 `func4` 函数，通过
+```assembly
+mov    $0xe,%edx
+mov    $0x0,%esi
+mov    0x8(%rsp),%edi
+```
+传入 `14`, `0`, `a` 三个参数
+
+注意到 `func4` 是一个递归函数，其中的核心运算如下
+
+```assembly
+mov    %edx,%eax          ; eax = edx
+sub    %esi,%eax          ; eax -= esi
+mov    %eax,%ecx          ; ecx = eax
+shr    $0x1f,%ecx         ; ecx = ecx >> 31 (逻辑右移, ecx = 0 or -1)
+add    %ecx,%eax          ; eax += ecx
+sar    %eax               ; eax = eax >> 1 (算术右移)
+lea    (%rax,%rsi,1),%ecx ; ecx = rax + rsi
+```
+
+后续跳转代码一行一行模拟即可发现 `func4` 就等价于以下 C 代码
+
+```c
+int func4(int x, int y, int z) {
+   int t = x - y;
+   if (t < 0) t -= 1;
+   t >>= 1;
+   int mid = t + y;
+   if (mid == z) return 0;
+   if (mid < z) return 2 * func4(x, mid + 1, z) + 1;
+   if (mid > z) return 2 * func4(mid - 1, y, z);
+}
+```
+
+实际上是一个带修正的二分查找，我们的输入需要满足 `func4(14, 0, a) == b` ，容易找到合法的解： `7 0` ，或者还有其他答案
+
+3) 设置断点并运行，输入正确的数字即可排除炸弹
+
+```
+Welcome to my fiendish little bomb. You have 6 phases with
+which to blow yourself up. Have a nice day!
+Phase 1 defused. How about the next one?
+That's number 2.  Keep going!
+Halfway there!
+7 0
+So you got that one.  Try this one.
+```
